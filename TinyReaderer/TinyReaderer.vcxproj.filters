@@ -24,7 +24,7 @@
     <ClCompile Include="Source\main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Engine\Flame.cpp">
+    <ClCompile Include="Source\Engine\Frame.cpp">
       <Filter>源文件\Engine\ImageCore</Filter>
     </ClCompile>
   </ItemGroup>
@@ -36,7 +36,7 @@
     <ClInclude Include="Source\Engine\CoreMinimal.h">
       <Filter>源文件\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Engine\Flame.h">
+    <ClInclude Include="Source\Engine\Frame.h">
       <Filter>源文件\Engine\ImageCore</Filter>
     </ClInclude>
   </ItemGroup>
