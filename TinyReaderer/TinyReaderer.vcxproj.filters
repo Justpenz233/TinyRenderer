@@ -21,10 +21,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="Source\main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Flame.cpp">
+    <ClCompile Include="Source\Engine\Flame.cpp">
       <Filter>源文件\Engine\ImageCore</Filter>
     </ClCompile>
   </ItemGroup>
@@ -33,11 +33,11 @@
     <None Include="..\README.md" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Flame.h">
-      <Filter>源文件\Engine\ImageCore</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreMinimal.h">
+    <ClInclude Include="Source\Engine\CoreMinimal.h">
       <Filter>源文件\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Flame.h">
+      <Filter>源文件\Engine\ImageCore</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

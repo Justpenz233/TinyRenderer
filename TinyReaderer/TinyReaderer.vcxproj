@@ -24,6 +24,7 @@
     <ProjectGuid>{bb4367fe-54b1-46d5-b3d6-f61814791f04}</ProjectGuid>
     <RootNamespace>TinyReaderer</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>TinyRenderer</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -139,12 +140,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Flame.cpp" />
+    <ClCompile Include="Source\main.cpp" />
+    <ClCompile Include="Source\Engine\Flame.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CoreMinimal.h" />
-    <ClInclude Include="Flame.h" />
+    <ClInclude Include="Source\Engine\CoreMinimal.h" />
+    <ClInclude Include="Source\Engine\Flame.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
