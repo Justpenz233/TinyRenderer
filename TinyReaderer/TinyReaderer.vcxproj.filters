@@ -12,12 +12,15 @@
     <Filter Include="源文件\Engine">
       <UniqueIdentifier>{a91646d8-4a23-4f1a-88ed-c741a597ee98}</UniqueIdentifier>
     </Filter>
-    <Filter Include="源文件\Engine\ImageCore">
-      <UniqueIdentifier>{c857e2d9-ba33-4e20-8857-b1edcee2f6b7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="源文件\Engine\Frame">
+      <UniqueIdentifier>{c857e2d9-ba33-4e20-8857-b1edcee2f6b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Engine\ModelParser">
+      <UniqueIdentifier>{79463814-7342-4f32-9e41-394e6abc821c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -25,10 +28,10 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Source\Engine\Frame.cpp">
-      <Filter>源文件\Engine\ImageCore</Filter>
+      <Filter>源文件\Engine\Frame</Filter>
     </ClCompile>
     <ClCompile Include="Source\Engine\Model.cpp">
-      <Filter>源文件\Engine</Filter>
+      <Filter>源文件\Engine\ModelParser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -40,15 +43,10 @@
       <Filter>源文件\Engine</Filter>
     </ClInclude>
     <ClInclude Include="Source\Engine\Frame.h">
-      <Filter>源文件\Engine\ImageCore</Filter>
+      <Filter>源文件\Engine\Frame</Filter>
     </ClInclude>
     <ClInclude Include="Source\Engine\Model.h">
-      <Filter>源文件\Engine</Filter>
+      <Filter>源文件\Engine\ModelParser</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Object Include="Source\african_head.obj">
-      <Filter>资源文件</Filter>
-    </Object>
   </ItemGroup>
 </Project>

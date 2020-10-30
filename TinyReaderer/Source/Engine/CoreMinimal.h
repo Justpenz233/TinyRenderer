@@ -1,6 +1,5 @@
 #pragma once
 #include "Frame.h"
-#include <iostream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -14,3 +13,6 @@
 #define COLOR_BLUE Scalar(255, 0, 0)
 #define COLOR_CYAN Scalar(255, 255, 0)
 #define COLOR_PURPLE Scalar(255, 0, 255)
+
+double FRAME_HEIGHT = 500;
+double FRAME_WIDTH = 500;

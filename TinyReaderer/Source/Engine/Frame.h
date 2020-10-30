@@ -1,18 +1,21 @@
-#include <opencv2/core/core.hpp>
+#pragma once
 
+#include <opencv2/core/core.hpp>
 
 class Frame
 {
 public:
 	~Frame();
-	Frame();
 	Frame(int w, int h);
-	int get_wide() const { return wide_; }
-	int get_height() const { return height_; }
-	void set(cv::Point2i& p, cv::Scalar& color);
-	void set(cv::Point2i p, cv::Scalar color);
-	void set(int x, int y, cv::Scalar color);
-	cv::Mat& get_image();
+	int GetWide() const { return wide_; }
+	int GetHeight() const { return height_; }
+	void Set(cv::Point2i& p, cv::Scalar& color);
+	void Set(cv::Point2i p, cv::Scalar color);
+	void Set(int x, int y, cv::Scalar color);
+	cv::Scalar At(int x, int y);
+	cv::Scalar At(const cv::Point2i& p);
+
+	cv::Mat& GetImage();
 	
 private:
 	int wide_;
