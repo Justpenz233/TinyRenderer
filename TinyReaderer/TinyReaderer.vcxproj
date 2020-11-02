@@ -140,11 +140,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Engine\Rasterization.cpp" />
     <ClCompile Include="Source\Engine\Model.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Engine\Frame.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Engine\Rasterization.h" />
     <ClInclude Include="Source\Engine\Model.h" />
     <ClInclude Include="Source\Engine\CoreMinimal.h" />
     <ClInclude Include="Source\Engine\Frame.h" />
