@@ -4,7 +4,7 @@
 using namespace cv;
 
 // Bresenham¡¯s Line Drawing 
-void line(int x0, int y0, int x1, int y1, Frame& image, const Scalar& color) {
+void Line(int x0, int y0, int x1, int y1, Frame& image, const Scalar& color) {
 	bool flag = 0;
 	if(abs(x0 - x1) < abs(y0 - y1))
 	{
@@ -41,7 +41,7 @@ void line(int x0, int y0, int x1, int y1, Frame& image, const Scalar& color) {
 	}
 }
 
-void line(const Vec2i& A, const Vec2i& B, Frame& image, const Scalar& color) {
+void Line(const Vec2i& A, const Vec2i& B, Frame& image, const Scalar& color) {
 	bool flag = 0;
 	int x0 = A[0];
 	int x1 = B[0];
@@ -60,7 +60,7 @@ void line(const Vec2i& A, const Vec2i& B, Frame& image, const Scalar& color) {
 	}
 	int dy = y1 - y0;
 	int dx = x1 - x0;
-	float t = 2 * abs(dy);
+	float t = 2. * abs(dy);
 	int y = y0;
 	float del = 0;
 	for (int x = x0; x <= x1; x++)
@@ -94,6 +94,14 @@ Vec4i BoundingBox(const Vec2i& A, const Vec2i& B, const Vec2i& C)
 	return Vec4i(XMin, YMin, XMax, YMax);
 }
 
+Scalar RandColor()
+{
+	int t1 = rand() % 256;
+	int t2 = rand() % 256;
+	int t3 = rand() % 256;
+	return Scalar(t1, t2, t3);
+}
+
 bool PointInTriangle(const Vec2i& A, const Vec2i& B, const Vec2i& C, const Vec2i& P)
 {
 	Vec2i v0 = C - A;
@@ -105,24 +113,46 @@ bool PointInTriangle(const Vec2i& A, const Vec2i& B, const Vec2i& C, const Vec2i
 	int dot11 = v1.dot(v1);
 	int dot12 = v1.dot(v2);
 
-	float invDenom = 1. / (dot00 * dot11 - dot01 * dot01);
-	float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-	float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-	return (u >= 0 and v >= 0 and (u + v) < 1);
+	double invDenom = 1. / (dot00 * dot11 - dot01 * dot01);
+	double u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+	double v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+	return (u < 0. and v < 0. and (u + v) > 1.);
 }
 
-void Triangle(const Vec2i& A, const Vec2i& B, const Vec2i& C, bool IsFill, Frame& image, const Scalar& color)
+void Triangle(const Vec2i& A, const Vec2i& B, const Vec2i& C, Frame& image, const Scalar& color, bool IsFill)
 {
 	if(!IsFill)
 	{
-		line(A, B, image, color);
-		line(B, C, image, color);
-		line(A, C, image, color);
+		Line(A, B, image, color);
+		Line(B, C, image, color);
+		Line(A, C, image, color);
 	}
 	else
 	{
-		
+		Rect BBox = boundingRect(std::vector<Vec2i>{A, B, C}); //Find Bounding Box
+		for(int i = BBox.x;i < BBox.x + BBox.width;i ++)
+		{
+			for(int j = BBox.y;j < BBox.y + BBox.height;j ++)
+			{
+				if (PointInTriangle(A, B, C, Vec2i(i, j)))
+				{
+					image.Set(i, j, color);
+				}
+			}
+		}
 	}
+}
+
+void Triangle(const std::vector<Vec2i>& Tri, Frame& image, const Scalar& color, bool IsFill)
+{
+	Triangle(Tri[0], Tri[1], Tri[2], image, color, IsFill);
+}
+
+Vec2i ModelToScreen(const Vec3f& Vert)
+{
+	int x0 = (Vert[0] + 1.) * (FRAME_WIDTH - 1) / 2.;
+	int y0 = (Vert[1] + 1.) * (FRAME_HEIGHT - 1) / 2.;
+	return Vec2i(x0, y0);
 }
 
 int main()
@@ -130,18 +160,21 @@ int main()
 	Frame t_frame(FRAME_WIDTH, FRAME_HEIGHT);
 	Model t_model("head.obj");
 
-	for (int i = 0; i < t_model.FaceSize(); i++) {
+	for (int i = 0; i < t_model.FaceSize(); i++) 
+	{
 		std::vector<int> face = t_model.Face(i);
-		for (int j = 0; j < 3; j++) {
+		std::vector<Vec2i> Tri;
+		for (int j = 0; j < 3; j++) 
+		{
 			Vec3f v0 = t_model.Vert(face[j]);
 			Vec3f v1 = t_model.Vert(face[(j + 1) % 3]);
-			int x0 = (v0[0] + 1.) * (FRAME_WIDTH - 1) / 2.;
-			int y0 = (v0[1] + 1.) * (FRAME_HEIGHT - 1) / 2.;
-			int x1 = (v1[0] + 1.) * (FRAME_WIDTH - 1) / 2.;
-			int y1 = (v1[1] + 1.) * (FRAME_HEIGHT - 1) / 2.;
-			line(x0, y0, x1, y1, t_frame, COLOR_WHITE);
+	
+			Tri.push_back(ModelToScreen(v0));
+			Line(ModelToScreen(v0),ModelToScreen(v1), t_frame, COLOR_RED);
 		}
+		Triangle(Tri, t_frame, COLOR_WHITE, true);
 	}
+
 	
 	cv::imshow("test", t_frame.GetImage());
 	cv::waitKey(0);

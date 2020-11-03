@@ -50,6 +50,11 @@ std::vector<int> Model::Face(int idx) {
     return faces_[idx];
 }
 
+std::vector<cv::Vec3f> Model::FaceVert(int idx)
+{
+    return std::vector<Vec3f>{verts_[faces_[idx][0]], verts_[faces_[idx][1]], verts_[faces_[idx][2]]};
+}
+
 Vec3f Model::Vert(int i) {
     return verts_[i];
 }

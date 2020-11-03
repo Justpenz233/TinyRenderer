@@ -12,5 +12,6 @@ public:
 	int FaceSize();
 	cv::Vec3f Vert(int i);
 	std::vector<int> Face(int idx);
+	std::vector<cv::Vec3f> FaceVert(int idx);
 };
 

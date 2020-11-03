@@ -13,5 +13,5 @@
 #define COLOR_CYAN Scalar(255, 255, 0)
 #define COLOR_PURPLE Scalar(255, 0, 255)
 
-double FRAME_HEIGHT = 500;
-double FRAME_WIDTH = 500;
+#define FRAME_HEIGHT 500.
+#define FRAME_WIDTH 500.

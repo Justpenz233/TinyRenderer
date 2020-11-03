@@ -13,7 +13,7 @@ class Rasterization
 	bool PointInTriangle(const Vec2i& A, const Vec2i& B, const Vec2i& C, const Vec2i& P);
 	
 	void Triangle(const Vec2i& A, const Vec2i& B, const Vec2i& C, bool IsFill);
-
+	
 	Vec4i BoundingBox(const Vec2i& A, const Vec2i& B, const Vec2i& C);
 	
 	Vec4i BoundingBox(std::vector<Vec2i> pts);
