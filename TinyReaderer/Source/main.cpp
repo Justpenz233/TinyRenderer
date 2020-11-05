@@ -116,18 +116,17 @@ bool PointInTriangle(const Vec2i& A, const Vec2i& B, const Vec2i& C, const Vec2i
 	double invDenom = 1. / (dot00 * dot11 - dot01 * dot01);
 	double u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 	double v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-	return (u < 0. and v < 0. and (u + v) > 1.);
+	return (u >= 0. and v >= 0. and (u + v) <= 1.);
 }
 
 void Triangle(const Vec2i& A, const Vec2i& B, const Vec2i& C, Frame& image, const Scalar& color, bool IsFill)
 {
-	if(!IsFill)
-	{
-		Line(A, B, image, color);
-		Line(B, C, image, color);
-		Line(A, C, image, color);
-	}
-	else
+	Line(A, B, image, color);
+	Line(B, C, image, color);
+	Line(A, C, image, color);
+
+	
+	if(IsFill)
 	{
 		Rect BBox = boundingRect(std::vector<Vec2i>{A, B, C}); //Find Bounding Box
 		for(int i = BBox.x;i < BBox.x + BBox.width;i ++)
@@ -172,7 +171,7 @@ int main()
 			Tri.push_back(ModelToScreen(v0));
 			Line(ModelToScreen(v0),ModelToScreen(v1), t_frame, COLOR_RED);
 		}
-		Triangle(Tri, t_frame, COLOR_WHITE, true);
+		Triangle(Tri, t_frame, RandColor(), true);
 	}
 
 	
