@@ -3,6 +3,13 @@
 
 using namespace cv;
 
+
+Vec2i ModelToScreen(const Vec3f& Vert)
+{
+	int x0 = (Vert[0] + 1.) * (FRAME_WIDTH - 1) / 2.;
+	int y0 = (Vert[1] + 1.) * (FRAME_HEIGHT - 1) / 2.;
+	return Vec2i(x0, y0);
+}
 // Bresenham¡¯s Line Drawing 
 void Line(int x0, int y0, int x1, int y1, Frame& image, const Scalar& color) {
 	bool flag = 0;
@@ -129,6 +136,7 @@ void Triangle(const Vec2i& A, const Vec2i& B, const Vec2i& C, Frame& image, cons
 	if(IsFill)
 	{
 		Rect BBox = boundingRect(std::vector<Vec2i>{A, B, C}); //Find Bounding Box
+
 		for(int i = BBox.x;i < BBox.x + BBox.width;i ++)
 		{
 			for(int j = BBox.y;j < BBox.y + BBox.height;j ++)
@@ -147,11 +155,9 @@ void Triangle(const std::vector<Vec2i>& Tri, Frame& image, const Scalar& color, 
 	Triangle(Tri[0], Tri[1], Tri[2], image, color, IsFill);
 }
 
-Vec2i ModelToScreen(const Vec3f& Vert)
+void Triangle(const std::vector<Vec3f>& Tri, Frame& image, const Scalar& color, bool IsFill)
 {
-	int x0 = (Vert[0] + 1.) * (FRAME_WIDTH - 1) / 2.;
-	int y0 = (Vert[1] + 1.) * (FRAME_HEIGHT - 1) / 2.;
-	return Vec2i(x0, y0);
+	Triangle(ModelToScreen(Tri[0]), ModelToScreen(Tri[1]), ModelToScreen(Tri[2]), image, color, IsFill);
 }
 
 int main()
@@ -159,19 +165,22 @@ int main()
 	Frame t_frame(FRAME_WIDTH, FRAME_HEIGHT);
 	Model t_model("head.obj");
 
+	Vec3f GlobalLight(0, 0, -1);
+	
 	for (int i = 0; i < t_model.FaceSize(); i++) 
 	{
 		std::vector<int> face = t_model.Face(i);
-		std::vector<Vec2i> Tri;
+		std::vector<Vec3f> Tri;
 		for (int j = 0; j < 3; j++) 
 		{
 			Vec3f v0 = t_model.Vert(face[j]);
-			Vec3f v1 = t_model.Vert(face[(j + 1) % 3]);
-	
-			Tri.push_back(ModelToScreen(v0));
-			Line(ModelToScreen(v0),ModelToScreen(v1), t_frame, COLOR_RED);
+			Tri.push_back(v0);
 		}
-		Triangle(Tri, t_frame, RandColor(), true);
+		
+		Vec3f Normal = (Tri[2] - Tri[0]).cross(Tri[1] - Tri[0]);
+		float n = cv::normalize(Normal).dot(GlobalLight);
+		if(n > 0)
+			Triangle(Tri, t_frame, Scalar(n * 255.,n * 255.,n * 255.), true);
 	}
 
 	
