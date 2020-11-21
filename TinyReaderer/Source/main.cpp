@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <limits>
 #include "Engine/CoreMinimal.h"
 #include "Engine/Model.h"
 
@@ -7,7 +7,7 @@ using namespace cv;
 
 int FrameWidth;
 int FrameHeight;
-int* ZBuffer;
+float* ZBuffer;
 
 Scalar RandColor()
 {
@@ -29,8 +29,8 @@ Vec4i BoundingBox(const Vec2i& A, const Vec2i& B, const Vec2i& C)
 }
 Vec2i World2Screen(const Vec3f& Vert)
 {
-	const int x0 = (Vert[0] + 1.) * (FRAME_WIDTH - 1) / 2.;
-	const int y0 = (Vert[1] + 1.) * (FRAME_HEIGHT - 1) / 2.;
+	const int x0 = (Vert[0] + 1.) * (FRAME_WIDTH - 1) / 2. + .5;
+	const int y0 = (Vert[1] + 1.) * (FRAME_HEIGHT - 1) / 2. + .5;
 	return Vec2i(x0, y0);
 }
 
@@ -166,7 +166,26 @@ void Triangle(const std::vector<Vec3f>& Tri, Frame& image, const Scalar& color, 
 				Vec3f u = Barycentric(AScreen, BScreen, CScreen, Vec2i(i, j));
 				if (u[0] < 0 || u[1] < 0 || u[2] < 0) 
 					continue;
-				image.Set(i, j, color);
+
+				//应用ZBuffer
+				if(ZBuffer != nullptr)
+				{
+					float Pz = 0.;
+					for(int k = 0;k < 3;k ++)
+					{
+						Pz += Tri[k][2] * u[k];
+					}
+					if(ZBuffer[i * FrameWidth + j] <= Pz)
+					{
+						image.Set(i, j, color);
+						ZBuffer[i * FrameWidth + j] = Pz;
+					}
+				}
+				//无ZBuffer
+				else
+				{
+					image.Set(i, j, color);
+				}
 			}
 		}
 	}
@@ -183,17 +202,24 @@ void Triangle(const std::vector<Vec3f>& Tri, Frame& image, const Scalar& color, 
 
 void DEBUG()
 {
-	Vec3f t = Barycentric(Vec2i(0,0), Vec2i(1,2), Vec2i(2,0), Vec2i(1,1));
-	std::cout << t[0] << " " << t[1] << " " << t[2];
+	Frame t_frame(FRAME_WIDTH, FRAME_HEIGHT);
+	
+	cv::imshow("test", t_frame.GetImage());
+	cv::waitKey(0);
 	exit(0);
 }
 
 int main()
 {
-	//DEBUG();
+//	DEBUG();
 	FrameWidth = FRAME_WIDTH;
 	FrameHeight = FRAME_HEIGHT;
-	ZBuffer = new int[FrameWidth * FrameHeight];
+
+	ZBuffer = new float[FrameWidth * FrameHeight]();
+	for(int i = 0;i < FrameWidth * FrameHeight;i ++)
+	{
+		ZBuffer[i] = - std::numeric_limits<float>::max();
+	}
 	
 	Frame t_frame(FRAME_WIDTH, FRAME_HEIGHT);
 	Model t_model("head.obj");
@@ -211,6 +237,8 @@ int main()
 			Tri.push_back(v0);
 		}
 
+		//光照计算 叉乘求面的法向量 Normal
+		//Normal 点乘 光的方向 为这个面的亮度
 		Vec3f Normal = (Tri[2] - Tri[0]).cross(Tri[1] - Tri[0]);
 		float n = cv::normalize(Normal).dot(GlobalLight);
 		if (n > 0)
