@@ -1,15 +1,39 @@
+#include <iostream>
+
 #include "Engine/CoreMinimal.h"
 #include "Engine/Model.h"
 
 using namespace cv;
 
+int FrameWidth;
+int FrameHeight;
+int* ZBuffer;
 
-Vec2i ModelToScreen(const Vec3f& Vert)
+Scalar RandColor()
 {
-	int x0 = (Vert[0] + 1.) * (FRAME_WIDTH - 1) / 2.;
-	int y0 = (Vert[1] + 1.) * (FRAME_HEIGHT - 1) / 2.;
+	int t1 = rand() % 256;
+	int t2 = rand() % 256;
+	int t3 = rand() % 256;
+	return Scalar(t1, t2, t3);
+}
+Vec4i BoundingBox(const Vec2i& A, const Vec2i& B, const Vec2i& C)
+{
+	int XMin, XMax, YMin, YMax;
+
+	XMin = min(min(A[0], B[0]), C[0]);
+	YMin = min(min(A[1], B[1]), C[1]);
+	XMax = max(max(A[0], B[0]), C[0]);
+	YMax = max(max(A[1], B[1]), C[1]);
+
+	return Vec4i(XMin, YMin, XMax, YMax);
+}
+Vec2i World2Screen(const Vec3f& Vert)
+{
+	const int x0 = (Vert[0] + 1.) * (FRAME_WIDTH - 1) / 2.;
+	const int y0 = (Vert[1] + 1.) * (FRAME_HEIGHT - 1) / 2.;
 	return Vec2i(x0, y0);
 }
+
 // Bresenham’s Line Drawing 
 void Line(int x0, int y0, int x1, int y1, Frame& image, const Scalar& color) {
 	bool flag = 0;
@@ -47,7 +71,6 @@ void Line(int x0, int y0, int x1, int y1, Frame& image, const Scalar& color) {
 		}
 	}
 }
-
 void Line(const Vec2i& A, const Vec2i& B, Frame& image, const Scalar& color) {
 	bool flag = 0;
 	int x0 = A[0];
@@ -89,83 +112,94 @@ void Line(const Vec2i& A, const Vec2i& B, Frame& image, const Scalar& color) {
 	}
 }
 
-Vec4i BoundingBox(const Vec2i& A, const Vec2i& B, const Vec2i& C)
-{
-	int XMin, XMax, YMin, YMax;
-
-	XMin = min(min(A[0], B[0]), C[0]);
-	YMin = min(min(A[1], B[1]), C[1]);
-	XMax = max(max(A[0], B[0]), C[0]);
-	YMax = max(max(A[1], B[1]), C[1]);
-
-	return Vec4i(XMin, YMin, XMax, YMax);
-}
-
-Scalar RandColor()
-{
-	int t1 = rand() % 256;
-	int t2 = rand() % 256;
-	int t3 = rand() % 256;
-	return Scalar(t1, t2, t3);
-}
 
 bool PointInTriangle(const Vec2i& A, const Vec2i& B, const Vec2i& C, const Vec2i& P)
 {
 	Vec2i v0 = C - A;
 	Vec2i v1 = B - A;
 	Vec2i v2 = P - A;
-	int dot00 = v0.dot(v0);
-	int dot01 = v0.dot(v1);
-	int dot02 = v0.dot(v2);
-	int dot11 = v1.dot(v1);
-	int dot12 = v1.dot(v2);
+	const int dot00 = v0.dot(v0);
+	const int dot01 = v0.dot(v1);
+	const int dot02 = v0.dot(v2);
+	const int dot11 = v1.dot(v1);
+	const int dot12 = v1.dot(v2);
 
-	double invDenom = 1. / (dot00 * dot11 - dot01 * dot01);
-	double u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-	double v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+	const double invDenom = 1. / (dot00 * dot11 - dot01 * dot01);
+	const double u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+	const double v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 	return (u >= 0. and v >= 0. and (u + v) <= 1.);
 }
 
-void Triangle(const Vec2i& A, const Vec2i& B, const Vec2i& C, Frame& image, const Scalar& color, bool IsFill)
+Vec3f Barycentric(const Vec2i& A, const Vec2i& B, const Vec2i& C, const Vec2i& P)
 {
-	Line(A, B, image, color);
-	Line(B, C, image, color);
-	Line(A, C, image, color);
-
-	
-	if(IsFill)
+	Vec3f s[2];
+	for(int i = 1;i >= 0;i --)
 	{
-		Rect BBox = boundingRect(std::vector<Vec2i>{A, B, C}); //Find Bounding Box
+		s[i][0] = C[i] - A[i];
+		s[i][1] = B[i] - A[i];
+		s[i][2] = A[i] - P[i];
+	}
 
-		for(int i = BBox.x;i < BBox.x + BBox.width;i ++)
+	Vec3f u = s[0].cross(s[1]);
+	
+	if (std::abs(u[2]) > 0.)
+		return Vec3f(1.f - (u[0] + u[1]) / u[2], u[0] / u[2], u[1] / u[2]);
+
+	else return Vec3f(-1, 1, 1);
+}
+
+//Draw A world Triangle to Screen
+void Triangle(const std::vector<Vec3f>& Tri, Frame& image, const Scalar& color, bool IsFill)
+{
+	if (IsFill)
+	{
+		const Vec2i AScreen = World2Screen(Tri[0]);
+		const Vec2i BScreen = World2Screen(Tri[1]);
+		const Vec2i CScreen = World2Screen(Tri[2]);
+		
+		Rect BBox = boundingRect(std::vector<Vec2i>{AScreen, BScreen, CScreen}); //Find Bounding Box
+
+		for (int i = BBox.x; i < BBox.x + BBox.width; i++)
 		{
-			for(int j = BBox.y;j < BBox.y + BBox.height;j ++)
+			for (int j = BBox.y; j < BBox.y + BBox.height; j++)
 			{
-				if (PointInTriangle(A, B, C, Vec2i(i, j)))
-				{
-					image.Set(i, j, color);
-				}
+				Vec3f u = Barycentric(AScreen, BScreen, CScreen, Vec2i(i, j));
+				if (u[0] < 0 || u[1] < 0 || u[2] < 0) 
+					continue;
+				image.Set(i, j, color);
 			}
 		}
 	}
+	else
+	{
+		const Vec2i A = World2Screen(Tri[0]);
+		const Vec2i B = World2Screen(Tri[1]);
+		const Vec2i C = World2Screen(Tri[2]);
+		Line(A, B, image, color);
+		Line(B, C, image, color);
+		Line(A, C, image, color);
+	}
 }
 
-void Triangle(const std::vector<Vec2i>& Tri, Frame& image, const Scalar& color, bool IsFill)
+void DEBUG()
 {
-	Triangle(Tri[0], Tri[1], Tri[2], image, color, IsFill);
-}
-
-void Triangle(const std::vector<Vec3f>& Tri, Frame& image, const Scalar& color, bool IsFill)
-{
-	Triangle(ModelToScreen(Tri[0]), ModelToScreen(Tri[1]), ModelToScreen(Tri[2]), image, color, IsFill);
+	Vec3f t = Barycentric(Vec2i(0,0), Vec2i(1,2), Vec2i(2,0), Vec2i(1,1));
+	std::cout << t[0] << " " << t[1] << " " << t[2];
+	exit(0);
 }
 
 int main()
 {
+	//DEBUG();
+	FrameWidth = FRAME_WIDTH;
+	FrameHeight = FRAME_HEIGHT;
+	ZBuffer = new int[FrameWidth * FrameHeight];
+	
 	Frame t_frame(FRAME_WIDTH, FRAME_HEIGHT);
 	Model t_model("head.obj");
 
-	Vec3f GlobalLight(0, 0, -1);
+	//一个全局平行光照 数字的大小代表光照的强度
+	Vec3f GlobalLight(0, 0, -0.8);
 	
 	for (int i = 0; i < t_model.FaceSize(); i++) 
 	{
@@ -176,11 +210,11 @@ int main()
 			Vec3f v0 = t_model.Vert(face[j]);
 			Tri.push_back(v0);
 		}
-		
+
 		Vec3f Normal = (Tri[2] - Tri[0]).cross(Tri[1] - Tri[0]);
 		float n = cv::normalize(Normal).dot(GlobalLight);
-		if(n > 0)
-			Triangle(Tri, t_frame, Scalar(n * 255.,n * 255.,n * 255.), true);
+		if (n > 0)
+			Triangle(Tri, t_frame, Scalar(n * 255., n * 255., n * 255.), true);
 	}
 
 	
