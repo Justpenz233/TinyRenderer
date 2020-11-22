@@ -1,5 +1,6 @@
 #include <iostream>
 #include <limits>
+#include <ctime>
 #include "Engine/CoreMinimal.h"
 #include "Engine/Model.h"
 
@@ -200,6 +201,11 @@ void Triangle(const std::vector<Vec3f>& Tri, Frame& image, const Scalar& color, 
 	}
 }
 
+void render()
+{
+	
+}
+
 void DEBUG()
 {
 	Frame t_frame(FRAME_WIDTH, FRAME_HEIGHT);
@@ -226,27 +232,34 @@ int main()
 
 	//一个全局平行光照 数字的大小代表光照的强度
 	Vec3f GlobalLight(0, 0, -0.8);
-	
-	for (int i = 0; i < t_model.FaceSize(); i++) 
-	{
-		std::vector<int> face = t_model.Face(i);
-		std::vector<Vec3f> Tri;
-		for (int j = 0; j < 3; j++) 
-		{
-			Vec3f v0 = t_model.Vert(face[j]);
-			Tri.push_back(v0);
-		}
 
-		//光照计算 叉乘求面的法向量 Normal
-		//Normal 点乘 光的方向 为这个面的亮度
-		Vec3f Normal = (Tri[2] - Tri[0]).cross(Tri[1] - Tri[0]);
-		float n = cv::normalize(Normal).dot(GlobalLight);
-		if (n > 0)
-			Triangle(Tri, t_frame, Scalar(n * 255., n * 255., n * 255.), true);
+	while(true)
+	{
+		auto StartTime = clock();
+		for (int i = 0; i < t_model.FaceSize(); i++) 
+		{
+			std::vector<int> face = t_model.Face(i);
+			std::vector<Vec3f> Tri;
+			for (int j = 0; j < 3; j++) 
+			{
+				Vec3f v0 = t_model.Vert(face[j]);
+				Tri.push_back(v0);
+			}
+
+			//光照计算 叉乘求面的法向量 Normal
+			//Normal 点乘 光的方向 为这个面的亮度
+			Vec3f Normal = (Tri[2] - Tri[0]).cross(Tri[1] - Tri[0]);
+			float n = cv::normalize(Normal).dot(GlobalLight);
+			if (n > 0)
+				Triangle(Tri, t_frame, Scalar(n * 255., n * 255., n * 255.), true);
+		}
+		auto EndTime = clock();
+		float FPS = (float)CLOCKS_PER_SEC / (EndTime - StartTime);
+		std::cout << FPS << std::endl;
+		//cv::putText(t_frame.GetImage(), std::to_string(FPS), Point(0, 40), FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 1);
+		cv::imshow("test", t_frame.GetImage());
+		cv::waitKey(1);
 	}
 
-	
-	cv::imshow("test", t_frame.GetImage());
-	cv::waitKey(0);
 	return 0;
 }

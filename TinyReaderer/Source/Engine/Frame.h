@@ -6,6 +6,7 @@ class Frame
 public:
 	~Frame();
 	Frame(int w, int h);
+	Frame();
 	int GetWide() const { return wide_; }
 	int GetHeight() const { return height_; }
 	void Set(cv::Point2i& p, cv::Scalar& color);
